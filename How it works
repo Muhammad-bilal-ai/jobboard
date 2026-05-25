@@ -1,0 +1,12 @@
+Request comes in
+  → helmet checks headers (security)
+  → passport-jwt extracts token (auth)
+  → class-validator validates body (validation)
+  → your controller runs
+  → prisma queries PostgreSQL (database)
+  → bull queues background work (jobs)
+    → sendgrid sends email (async)
+    → openai generates AI content (async)
+  → socket.io pushes real-time updates (websockets)
+  → stripe handles payment (payments)
+  → response sent back
