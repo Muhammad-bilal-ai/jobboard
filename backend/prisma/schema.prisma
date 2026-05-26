@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+enum Role {
+  EMPLOYER
+  CANDIDATE
+  ADMIN
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWED
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  password      String?
+  name          String
+  role          Role           @default(CANDIDATE)
+  avatar        String?
+  bio           String?
+  resumeUrl     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  jobs          Job[]
+  applications  Application[]
+  alerts        JobAlert[]
+  notifications Notification[]
+}
+
+model Job {
+  id              String        @id @default(cuid())
+  title           String
+  description     String
+  location        String
+  type            String
+  salary          String?
+  tags            String[]
+  status          JobStatus     @default(DRAFT)
+  stripePaymentId String?
+  employerId      String
+  employer        User          @relation(fields: [employerId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  applications    Application[]
+
+  @@index([status, createdAt])
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  status      ApplicationStatus @default(APPLIED)
+  coverLetter String?
+  aiScore     Int?
+  aiReason    String?
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id])
+  candidateId String
+  candidate   User              @relation(fields: [candidateId], references: [id])
+  createdAt   DateTime          @default(now())
+
+  @@unique([jobId, candidateId])
+}
+
+model JobAlert {
+  id        String   @id @default(cuid())
+  keywords  String[]
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  message   String
+  read      Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
