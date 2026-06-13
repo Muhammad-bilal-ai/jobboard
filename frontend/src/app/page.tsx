@@ -118,7 +118,7 @@ export default function HomePage() {
                         ))}
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
+                    <div className="text-right shrink-0">
                       {job.salary && (
                         <p className="text-sm font-medium text-gray-900 mb-1">
                           {job.salary}
