@@ -10,8 +10,7 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
-  private stripe: Stripe;
-
+  private stripe: InstanceType<typeof Stripe>;
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
@@ -59,7 +58,7 @@ export class PaymentsService {
   async handleWebhook(signature: string, rawBody: Buffer) {
     const webhookSecret = this.config.get<string>('STRIPE_WEBHOOK_SECRET')!;
 
-    let event: Stripe.Event;
+    let event: ReturnType<typeof this.stripe.webhooks.constructEvent>;
     try {
       event = this.stripe.webhooks.constructEvent(
         rawBody,
@@ -72,7 +71,10 @@ export class PaymentsService {
 
     // we only care about completed checkouts
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
+      const session = event.data.object as {
+        id: string;
+        metadata?: { jobId?: string };
+      };
       const jobId = session.metadata?.jobId;
 
       if (jobId) {

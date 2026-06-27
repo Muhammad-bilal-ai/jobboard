@@ -65,7 +65,18 @@ export default function EmployerDashboard() {
     },
     onError: () => toast.error("Failed to update job"),
   });
-
+  // pay to publish via Stripe
+  const payMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      const { data } = await api.post(`/payments/checkout/${jobId}`);
+      return data;
+    },
+    onSuccess: (data) => {
+      // redirect to Stripe Checkout
+      window.location.href = data.url;
+    },
+    onError: () => toast.error("Failed to start checkout"),
+  });
   if (!hydrated || isLoading) {
     return <div className="text-center text-gray-500 py-20">Loading...</div>;
   }
@@ -131,15 +142,13 @@ export default function EmployerDashboard() {
                   <div className="flex flex-wrap gap-2 mt-4">
                     {job.status === "DRAFT" && (
                       <button
-                        onClick={() =>
-                          statusMutation.mutate({
-                            id: job.id,
-                            status: "ACTIVE",
-                          })
-                        }
-                        className="text-sm px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                        onClick={() => payMutation.mutate(job.id)}
+                        disabled={payMutation.isPending}
+                        className="text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
                       >
-                        Publish
+                        {payMutation.isPending
+                          ? "Starting checkout..."
+                          : "Pay & Publish — $9"}
                       </button>
                     )}
                     {job.status === "ACTIVE" && (

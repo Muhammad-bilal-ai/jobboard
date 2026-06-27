@@ -5,8 +5,8 @@ import {
   UseGuards,
   Req,
   Headers,
-  RawBodyRequest,
 } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 import { Request } from 'express';
 import { Role } from '@prisma/client';
 import { PaymentsService } from './payments.service';
