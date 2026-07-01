@@ -20,6 +20,8 @@ export default function PostJobPage() {
     tags: "",
   });
 
+  const [aiPoints, setAiPoints] = useState("");
+
   const mutation = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -35,6 +37,22 @@ export default function PostJobPage() {
               .filter(Boolean)
           : undefined,
       };
+
+      // AI description generation
+      const aiMutation = useMutation({
+        mutationFn: async () => {
+          const { data } = await api.post("/ai/generate-description", {
+            title: form.title,
+            points: aiPoints,
+          });
+          return data;
+        },
+        onSuccess: (data) => {
+          setForm((f) => ({ ...f, description: data.description }));
+          toast.success("Description generated!");
+        },
+        onError: () => toast.error("Failed to generate. Try again."),
+      });
       if (!hydrated) {
         return (
           <div className="text-center text-gray-500 py-20">Loading...</div>
@@ -91,6 +109,31 @@ export default function PostJobPage() {
                 placeholder="Senior Full Stack Developer"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+            </div>
+
+            {/* AI generation box */}
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+              <label className="block text-sm font-medium text-indigo-900 mb-1">
+                ✨ Generate description with AI
+              </label>
+              <p className="text-xs text-indigo-600 mb-2">
+                Enter a few key points and let AI write the full description.
+              </p>
+              <textarea
+                value={aiPoints}
+                onChange={(e) => setAiPoints(e.target.value)}
+                rows={2}
+                placeholder="e.g. 5+ years experience, NestJS + Next.js, remote, small team"
+                className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => aiMutation.mutate()}
+                disabled={!form.title || !aiPoints || aiMutation.isPending}
+                className="text-sm px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+              >
+                {aiMutation.isPending ? "Generating..." : "Generate with AI"}
+              </button>
             </div>
 
             <div>
